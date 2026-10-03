@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cards</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cards">
+<meta name="theme-color" content="#0f766e">
+<style>
+:root{
+  --bg:#f4f6f6;--card:#fff;--text:#16201f;--muted:#66726f;--line:#e0e6e5;--accent:#0f766e;--accent-text:#fff;--danger:#d92d20;
+  --new:#2563eb;--learn:#d92d20;--rev:#15803d;
+  --sat:env(safe-area-inset-top);--sab:env(safe-area-inset-bottom);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#0e1313;--card:#172020;--text:#e8efee;--muted:#8b9a97;--line:#273231;--accent:#2dd4bf;--accent-text:#042f2e;--danger:#ff7a70;--new:#6aa2ff;--learn:#ff7a70;--rev:#4ade80}
+}
+:root[data-theme="dark"]{--bg:#0e1313;--card:#172020;--text:#e8efee;--muted:#8b9a97;--line:#273231;--accent:#2dd4bf;--accent-text:#042f2e;--danger:#ff7a70;--new:#6aa2ff;--learn:#ff7a70;--rev:#4ade80}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:16px}
+body{padding-top:var(--sat);padding-bottom:calc(72px + var(--sab));min-height:100vh}
+body.noscroll{overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+h1{font-size:22px;margin:6px 0 12px}
+h2{font-size:19px;margin:0 0 6px}
+.page{display:none;padding:12px 14px 24px;max-width:640px;margin:0 auto}
+.page.active{display:block}
+.row{display:flex;align-items:center;gap:8px}
+.spacer{flex:1}
+.muted{color:var(--muted)}
+.small{font-size:13px;color:var(--muted)}
+.btn{background:var(--accent);color:var(--accent-text);padding:10px 16px;border-radius:12px;font-weight:600}
+.btn.ghost{background:var(--card);color:var(--text);border:1px solid var(--line)}
+.btn.danger{background:var(--danger);color:#fff}
+.btn.full{width:100%;margin-top:14px;padding:13px}
+.mini{padding:5px 10px;border-radius:9px;background:var(--card);border:1px solid var(--line);font-size:13px}
+.icon-btn{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:20px;background:var(--card);border:1px solid var(--line);flex:none}
+input,textarea,select{width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);font:inherit;font-size:16px}
+textarea{resize:vertical}
+input[type=checkbox]{width:auto}
+input[type=file]{border:0;padding:6px 0;background:none;font-size:14px}
+input[type=color]{width:46px;height:40px;padding:3px}
+.lab{display:block;font-size:13px;color:var(--muted);margin:12px 2px 5px;font-weight:600}
+.chk{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.prev{max-width:100%;max-height:200px;border-radius:12px;margin-top:8px;display:block}
+.seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:6px}
+.seg button{flex:1;padding:8px 0;border-radius:9px;font-size:14px;color:var(--muted)}
+.seg button.on{background:var(--accent);color:var(--accent-text);font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.empty-note{text-align:center;color:var(--muted);padding:24px 8px}
+
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;padding-bottom:var(--sab);z-index:10}
+nav button{flex:1;padding:9px 0 7px;font-size:11px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button .ico{font-size:21px;line-height:1}
+nav button.active{color:var(--accent);font-weight:700}
+
+/* decks */
+.legend{display:flex;justify-content:flex-end;gap:0;font-size:11px;font-weight:700;margin:0 56px 4px 0}
+.legend span,.cnt span{width:42px;text-align:center}
+.legend .cn,.cnt .cn{color:var(--new)}.legend .cl,.cnt .cl{color:var(--learn)}.legend .cr,.cnt .cr{color:var(--rev)}
+.cnt{display:flex;font-weight:700;font-variant-numeric:tabular-nums}
+.cnt span.z{opacity:.35;font-weight:500}
+.deck{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-left:5px solid var(--dc,var(--accent));border-radius:14px;padding:6px 8px 6px 4px;margin-top:8px}
+.deck-main{flex:1;min-width:0;text-align:left;padding:8px 10px;display:flex;flex-direction:column}
+.dn{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dsub{font-size:12px;color:var(--muted)}
+.addform{display:flex;gap:8px;margin-top:14px}
+.addform input{flex:1;min-width:0}
+
+/* browse */
+.crow{display:flex;flex-direction:column;gap:4px;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:6px}
+.ctx{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.cmeta{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted)}
+.chip{padding:1px 8px;border-radius:99px;font-weight:700;font-size:11px;border:1px solid currentColor}
+.chip.n{color:var(--new)}.chip.l{color:var(--learn)}.chip.r{color:var(--rev)}.chip.s{color:var(--muted)}
+
+/* sheet */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-end;justify-content:center;z-index:60}
+.overlay.open{display:flex}
+.sheet{background:var(--bg);width:100%;max-width:640px;max-height:90vh;overflow:auto;border-radius:20px 20px 0 0;padding:16px 14px calc(18px + var(--sab))}
+.sheet .row.wrap{flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:calc(84px + var(--sab));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:9px 16px;border-radius:99px;font-size:14px;z-index:100;max-width:90%;text-align:center}
+
+/* study */
+.study{position:fixed;inset:0;background:var(--bg);z-index:40;display:flex;flex-direction:column;padding-top:var(--sat)}
+.s-top{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line);background:var(--card)}
+.s-title{flex:1;min-width:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.s-counts{display:flex;font-weight:700;font-variant-numeric:tabular-nums;font-size:15px}
+.s-counts span{min-width:30px;text-align:center}
+.s-counts .cn{color:var(--new)}.s-counts .cl{color:var(--learn)}.s-counts .cr{color:var(--rev)}
+.s-body{flex:1;overflow:auto;padding:22px 18px;max-width:640px;width:100%;margin:0 auto}
+.face{font-size:22px;line-height:1.45;text-align:center;word-wrap:break-word}
+.face img{max-width:100%;max-height:42vh;border-radius:12px;margin-top:14px}
+.face .cl{color:var(--accent);font-weight:800}
+.face .cl.on{background:color-mix(in srgb,var(--accent) 16%,transparent);padding:0 4px;border-radius:6px}
+.face .extra{margin-top:16px;font-size:16px;color:var(--muted)}
+.s-body hr{border:0;border-top:1px solid var(--line);margin:20px 0}
+.s-foot{padding:10px 12px calc(12px + var(--sab));background:var(--card);border-top:1px solid var(--line)}
+.s-foot .show{width:100%;padding:16px;font-size:17px}
+.grades{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:640px;margin:0 auto}
+.grades button{padding:10px 2px;border-radius:12px;border:1px solid var(--line);border-top:4px solid var(--gc);background:var(--bg);display:flex;flex-direction:column;align-items:center;gap:2px}
+.grades b{font-size:15px}.grades span{font-size:12px;color:var(--muted)}
+.done{text-align:center;padding:50px 10px}.done .big{font-size:56px}
+
+/* stats */
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stat-grid .card{text-align:center;padding:10px 4px;margin:0}
+.big-n{font-size:22px;font-weight:700}
+.chart{margin-top:6px}
+.readout{font-size:13px;min-height:18px;color:var(--muted)}
+.bars{display:flex;align-items:flex-end;gap:3px;height:110px;border-bottom:1px solid var(--line);position:relative}
+.bars .b{flex:1;height:100%;display:flex;align-items:flex-end;cursor:pointer}
+.bars .b i{display:block;width:100%;background:var(--accent);border-radius:4px 4px 0 0;min-height:0}
+.bars .b.sel i,.bars .b:hover i{filter:brightness(1.25)}
+.bars .b.today i{outline:0}
+.xl{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px}
+details{margin-top:8px;font-size:13px}
+details table{width:100%;border-collapse:collapse;margin-top:6px}
+details td{padding:3px 4px;border-bottom:1px solid var(--line)}
+details td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.statelist div{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--line);font-size:15px}
+.statelist div:last-child{border:0}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+</style>
+</head>
+<body>
+
+<section id="page-decks" class="page active">
+  <h1>Decks</h1>
+  <div class="row" style="margin-bottom:6px"><div class="small" id="dueSummary"></div><span class="spacer"></span><button class="mini" id="studyAll" hidden>Study all</button></div>
+  <div class="legend"><span class="cn">New</span><span class="cl">Learn</span><span class="cr">Due</span></div>
+  <div id="deckList"></div>
+  <form class="addform" id="deckForm"><input id="deckName" placeholder="New deck name…" maxlength="40" autocomplete="off"><button class="btn" type="submit">Create</button></form>
+</section>
+
+<section id="page-add" class="page">
+  <h1>Add card</h1>
+  <div id="addForm"></div>
+  <button class="btn full" id="addSave">Add card</button>
+  <div class="small" style="margin-top:10px">Cloze: select text, tap “+ new cloze”. Each numbered cloze becomes its own card. Format: **bold**, *italic*.</div>
+</section>
+
+<section id="page-browse" class="page">
+  <h1>Browse</h1>
+  <input id="bq" placeholder="Search text or #tag…" autocomplete="off">
+  <div class="two" style="margin-top:8px"><select id="bdeck"></select><select id="bstate"><option value="">All cards</option><option value="new">New</option><option value="learn">Learning</option><option value="due">Due now</option><option value="susp">Suspended</option></select></div>
+  <div class="small" id="bcount" style="margin:8px 2px 0"></div>
+  <div id="blist"></div>
+  <button class="btn ghost full" id="bmore" hidden>Show more</button>
+</section>
+
+<section id="page-stats" class="page">
+  <h1>Stats</h1>
+  <div id="statsBody"></div>
+</section>
+
+<section id="page-more" class="page">
+  <h1>Settings</h1>
+  <div class="card">
+    <label class="lab" style="margin-top:0">Learning steps (minutes)</label>
+    <input id="setLearn" placeholder="1 10">
+    <label class="lab">Relearning steps after a lapse (minutes)</label>
+    <input id="setRelearn" placeholder="10">
+    <label class="lab">Theme</label>
+    <select id="setTheme"><option value="auto">Match phone</option><option value="light">Light</option><option value="dark">Dark</option></select>
+    <button class="btn full" id="setSave">Save settings</button>
+    <div class="small" style="margin-top:8px">Days roll over at 4 AM. New-card and review limits are set per deck (⋯ on the Decks tab).</div>
+  </div>
+  <h1>Import cards</h1>
+  <div class="card">
+    <div class="small">One card per line: <code>front ; back</code> (or tab-separated, optional 3rd column for tags). A line with <code>{{c1::text}}</code> becomes a cloze card. Anki “Notes as plain text” exports work.</div>
+    <label class="lab">Into deck</label><select id="impDeck"></select>
+    <textarea id="impText" rows="6" style="margin-top:8px" placeholder="Mitochondria ; Powerhouse of the cell"></textarea>
+    <button class="btn full" id="impGo">Import</button>
+  </div>
+  <h1>Backup</h1>
+  <div class="card">
+    <div class="small">Everything is stored only on this device. Export a backup now and then.</div>
+    <div class="tools">
+      <button class="btn ghost" id="expJson">Export backup</button>
+      <button class="btn ghost" id="impJson">Import backup</button>
+      <button class="btn ghost" id="expTsv" style="grid-column:1/3">Export basic cards (TSV for Anki)</button>
+    </div>
+    <input type="file" id="file" accept="application/json,.json" hidden>
+    <button class="btn danger full" id="wipe">Delete all data</button>
+  </div>
+</section>
+
+<!-- study -->
+<div class="study" id="study" hidden>
+  <div class="s-top">
+    <button class="icon-btn" id="sClose" aria-label="Close">✕</button>
+    <div class="s-title" id="sTitle"></div>
+    <div class="s-counts"><span class="cn" id="cN">0</span><span class="cl" id="cL">0</span><span class="cr" id="cR">0</span></div>
+    <button class="icon-btn" id="sUndo" aria-label="Undo">↶</button>
+    <button class="icon-btn" id="sMenu" aria-label="Card menu">⋯</button>
+  </div>
+  <div class="s-body" id="sBody"></div>
+  <div class="s-foot" id="sFoot"></div>
+</div>
+
+<div class="overlay" id="overlay"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<nav>
+  <button data-p="decks" class="active"><span class="ico">🗂</span>Decks</button>
+  <button data-p="add"><span class="ico">＋</span>Add</button>
+  <button data-p="browse"><span class="ico">🔍</span>Browse</button>
+  <button data-p="stats"><span class="ico">📊</span>Stats</button>
+  <button data-p="more"><span class="ico">⚙️</span>Settings</button>
+</nav>
+
+<script>
+'use strict';
+const $=s=>document.querySelector(s);
+const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const COLORS=['#0f766e','#4f46e5','#d97706','#dc2626','#0891b2','#9333ea','#db2777','#65a30d'];
+const ROLL=4, LEARN_AHEAD=20*60000;
+
+/* ================= storage (IndexedDB, localStorage fallback) ================= */
+const DBN='flashcards-app';
+let dbp=null;
+function idb(){return new Promise((res,rej)=>{const r=indexedDB.open(DBN,1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function kvGet(k){
+  try{dbp=dbp||idb();const db=await dbp;return await new Promise((res,rej)=>{const q=db.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})}
+  catch(e){try{return JSON.parse(localStorage.getItem('fc.'+k))}catch(_){return null}}
+}
+async function kvSet(k,v){
+  try{dbp=dbp||idb();const db=await dbp;await new Promise((res,rej)=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=res;t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error)});return true}
+  catch(e){try{localStorage.setItem('fc.'+k,JSON.stringify(v));return true}catch(_){return false}}
+}
+let S,saveT=null;
+function save(){clearTimeout(saveT);saveT=setTimeout(flush,400)}
+async function flush(){clearTimeout(saveT);saveT=null;if(!S)return;const ok=await kvSet('state',S);if(!ok)toast('⚠ Could not save — storage blocked or full')}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flush()});
+window.addEventListener('pagehide',flush);
+
+/* ================= helpers ================= */
+let toastT;
+function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2200)}
+const dayIdx=ts=>{const d=new Date(ts-ROLL*3600e3);return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5)};
+const today=()=>dayIdx(Date.now());
+const deckById=id=>S.decks.find(d=>d.id===id);
+const parseTags=s=>[...new Set(String(s||'').toLowerCase().split(/[,\s]+/).map(x=>x.replace(/^#/,'')).filter(Boolean))];
+function fmtDays(d){if(d<30)return d+'d';if(d<365)return (d/30.4).toFixed(1).replace(/\.0$/,'')+'mo';return (d/365).toFixed(1).replace(/\.0$/,'')+'y'}
+function fmtWait(ms){const m=Math.max(1,Math.round(ms/60000));if(m<60)return m+' min';const h=Math.round(m/60);return h+' hr'}
+function download(name,text,type){const b=new Blob([text],{type});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)}
+
+/* ================= cloze + text rendering ================= */
+const CRE=()=>/\{\{c(\d+)::([\s\S]*?)(?:::([\s\S]*?))?\}\}/g;
+function clozeIdxs(t){const s=new Set();let m;const r=CRE();while((m=r.exec(t)))s.add(+m[1]);return [...s].sort((a,b)=>a-b)}
+const maxCloze=t=>{const i=clozeIdxs(t);return i.length?i[i.length-1]:0};
+function fmtText(s){return esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<i>$2</i>').replace(/\n/g,'<br>')}
+function clozeHTML(text,idx,reveal){
+  const re=CRE();let out='',last=0,m;
+  while((m=re.exec(text))){
+    out+=fmtText(text.slice(last,m.index));
+    if(+m[1]===idx)out+=reveal?'<span class="cl on">'+fmtText(m[2])+'</span>':'<span class="cl">['+esc(m[3]||'…')+']</span>';
+    else out+=fmtText(m[2]);
+    last=re.lastIndex;
+  }
+  return out+fmtText(text.slice(last));
+}
+function renderCard(c){
+  const img=c.img?'<div><img alt="" src="'+c.img+'"></div>':'';
+  if(c.type==='cloze'){
+    return {q:clozeHTML(c.front,c.idx,false)+img,a:clozeHTML(c.front,c.idx,true)+(c.back?'<div class="extra">'+fmtText(c.back)+'</div>':'')+img,replace:true};
+  }
+  const f=c.rev?c.back:c.front,b=c.rev?c.front:c.back;
+  return {q:fmtText(f)+(c.rev?'':img),a:fmtText(b)+(c.rev?img:''),replace:false};
+}
+function plain(c){return c.type==='cloze'?c.front.replace(CRE(),(m,i,t)=>+i===c.idx?'[…]':t):(c.rev?c.back:c.front)||'(image)'}
+
+/* ================= scheduler (SM-2 style, Anki-like) =================
+   state: 0 new, 1 learning, 2 review, 3 relearning
+   due:   state 1/3 => ms timestamp; state 2 => day index; state 0 => unused */
+function sched(c,g,now){
+  const n=Object.assign({},c),T=dayIdx(now);
+  const ls=S.settings.learnSteps,rs=S.settings.relearnSteps;
+  n.reps=(c.reps||0)+1;
+  const toStep=(steps,i)=>{n.step=i;n.due=now+steps[i]*60000};
+  const grad=ivl=>{n.state=2;n.step=0;n.ivl=Math.min(36500,Math.max(1,Math.round(ivl)));n.due=T+n.ivl};
+  if(c.state===0||c.state===1){
+    n.state=1;
+    const cur=c.state===0?0:Math.min(c.step,ls.length-1);
+    if(g===1)toStep(ls,0);
+    else if(g===2)toStep(ls,cur);
+    else if(g===3){const i=cur+1;if(i>=ls.length)grad(1);else toStep(ls,i)}
+    else grad(4);
+  }else if(c.state===2){
+    if(g===1){n.lapses=(c.lapses||0)+1;n.ease=Math.max(1.3,c.ease-0.2);n.ivl=Math.max(1,Math.round(c.ivl*0.5));n.state=3;toStep(rs,0)}
+    else if(g===2){n.ease=Math.max(1.3,c.ease-0.15);grad(Math.max(c.ivl+1,c.ivl*1.2))}
+    else if(g===3){grad(Math.max(c.ivl+1,c.ivl*c.ease))}
+    else{n.ease=c.ease+0.15;grad(Math.max(c.ivl+1,c.ivl*c.ease*1.3))}
+  }else{
+    const cur=Math.min(c.step,rs.length-1);
+    if(g===1)toStep(rs,0);
+    else if(g===2)toStep(rs,cur);
+    else if(g===3){const i=cur+1;if(i>=rs.length)grad(c.ivl);else toStep(rs,i)}
+    else grad(c.ivl+1);
+  }
+  return n;
+}
+function previewLabel(c,g){const now=Date.now(),n=sched(c,g,now);if(n.state===2)return fmtDays(n.ivl);const m=Math.round((n.due-now)/60000);return m<1?'<1m':m+'m'}
+
+/* ================= queue ================= */
+function limits(d){const k=S.counts[d.id],t=today();const u=(k&&k.day===t)?k:{n:0,r:0};return {newLeft:Math.max(0,d.newPerDay-u.n),revLeft:Math.max(0,d.revPerDay-u.r)}}
+function bump(id,f,x){const t=today();let k=S.counts[id];if(!k||k.day!==t)k=S.counts[id]={day:t,n:0,r:0};k[f]=Math.max(0,k[f]+x)}
+function queueStats(ids){
+  const now=Date.now(),t=today(),set=new Set(ids);
+  const learnDue=[],learnAhead=[],rev=[],nw=[];
+  for(const c of S.cards){
+    if(c.susp||!set.has(c.deck))continue;
+    if(c.state===1||c.state===3){if(c.due<=now)learnDue.push(c);else if(c.due<=now+LEARN_AHEAD)learnAhead.push(c)}
+    else if(c.state===2){if(c.due<=t)rev.push(c)}
+    else nw.push(c);
+  }
+  learnDue.sort((a,b)=>a.due-b.due);learnAhead.sort((a,b)=>a.due-b.due);
+  rev.sort((a,b)=>a.due-b.due||a.order-b.order);nw.sort((a,b)=>a.order-b.order);
+  const lim={};for(const id of ids){const d=deckById(id);if(d)lim[id]=limits(d)}
+  const cut=(arr,key)=>{const used={};return arr.filter(c=>{const l=lim[c.deck];if(!l)return false;used[c.deck]=(used[c.deck]||0)+1;return used[c.deck]<=l[key]})};
+  return {learnDue,learnAhead,rev:cut(rev,'revLeft'),nw:cut(nw,'newLeft')};
+}
+
+/* ================= notes ================= */
+function newCard(o){return Object.assign({id:uid(),noteId:uid(),deck:'',type:'basic',front:'',back:'',img:null,tags:[],rev:false,idx:0,state:0,step:0,due:0,ivl:0,ease:2.5,reps:0,lapses:0,susp:false,order:S.nextOrder++,created:Date.now()},o)}
+function addNote(f){
+  const noteId=uid(),base={noteId,deck:f.deck,type:f.type,front:f.front,back:f.back,img:f.img||null,tags:f.tags||[]};
+  if(f.type==='cloze'){const ix=clozeIdxs(f.front);if(!ix.length)return 0;ix.forEach(i=>S.cards.push(newCard(Object.assign({},base,{idx:i}))));return ix.length}
+  S.cards.push(newCard(base));let n=1;
+  if(f.reverse){S.cards.push(newCard(Object.assign({},base,{rev:true})));n++}
+  return n;
+}
+function updateNote(card,f){
+  for(const s of S.cards)if(s.noteId===card.noteId){s.deck=f.deck;s.front=f.front;s.back=f.back;s.img=f.img;s.tags=f.tags}
+  if(card.type==='cloze'){
+    const ix=clozeIdxs(f.front);
+    S.cards=S.cards.filter(x=>x.noteId!==card.noteId||ix.includes(x.idx));
+    for(const i of ix)if(!S.cards.some(x=>x.noteId===card.noteId&&x.idx===i))S.cards.push(newCard({noteId:card.noteId,deck:f.deck,type:'cloze',front:f.front,back:f.back,img:f.img,tags:f.tags,idx:i}));
+  }
+}
+function deleteNote(card){S.cards=S.cards.filter(x=>x.noteId!==card.noteId)}
+
+/* ================= card form (shared by Add page and editor) ================= */
+const forms={};let lastDeck='';
+function formHTML(p,c){
+  const edit=!!c,t=edit?c.type:'basic';
+  forms[p]={type:t,img:edit?(c.img||null):null};
+  const cur=edit?c.deck:lastDeck;
+  const opts=S.decks.map(d=>'<option value="'+d.id+'"'+(cur===d.id?' selected':'')+'>'+esc(d.name)+'</option>').join('');
+  return (edit?'':'<div class="seg" id="'+p+'-seg"><button type="button" data-t="basic" class="on">Basic</button><button type="button" data-t="cloze">Cloze</button></div>')+
+  '<label class="lab">Deck</label><select id="'+p+'-deck">'+opts+'</select>'+
+  '<div id="'+p+'-basic"'+(t==='cloze'?' hidden':'')+'>'+
+    '<label class="lab">Front</label><textarea id="'+p+'-front" rows="3">\n'+esc(t==='basic'&&edit?c.front:'')+'</textarea>'+
+    '<label class="lab">Back</label><textarea id="'+p+'-back" rows="3">\n'+esc(t==='basic'&&edit?c.back:'')+'</textarea>'+
+    (edit?'':'<label class="chk"><input type="checkbox" id="'+p+'-rev"> Also create reverse card (back → front)</label>')+
+  '</div>'+
+  '<div id="'+p+'-cloze"'+(t==='basic'?' hidden':'')+'>'+
+    '<div class="row" style="margin-top:12px"><span class="lab" style="margin:0">Text</span><span class="spacer"></span><button type="button" class="mini" id="'+p+'-c1">+ new cloze</button><button type="button" class="mini" id="'+p+'-c2">+ same #</button></div>'+
+    '<textarea id="'+p+'-ctext" rows="4" style="margin-top:5px" placeholder="The {{c1::SA node}} is the pacemaker.">\n'+esc(t==='cloze'&&edit?c.front:'')+'</textarea>'+
+    '<label class="lab">Extra (shown on answer)</label><textarea id="'+p+'-extra" rows="2">\n'+esc(t==='cloze'&&edit?c.back:'')+'</textarea>'+
+  '</div>'+
+  '<label class="lab">Tags</label><input id="'+p+'-tags" value="'+esc(edit?c.tags.join(' '):'')+'" placeholder="cardio anatomy" autocapitalize="none">'+
+  '<label class="lab">Image (optional)</label><div class="row"><input type="file" id="'+p+'-file" accept="image/*"><button type="button" class="mini" id="'+p+'-imgx"'+(forms[p].img?'':' hidden')+'>Remove</button></div>'+
+  '<img id="'+p+'-prev" class="prev" alt=""'+(forms[p].img?' src="'+forms[p].img+'"':' hidden')+'>';
+}
+function shrink(file){return new Promise((res,rej)=>{const u=URL.createObjectURL(file),im=new Image();im.onload=()=>{const k=Math.min(1,900/Math.max(im.width,im.height)),w=Math.round(im.width*k),h=Math.round(im.height*k),cv=document.createElement('canvas');cv.width=w;cv.height=h;const x=cv.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(im,0,0,w,h);URL.revokeObjectURL(u);res(cv.toDataURL('image/jpeg',0.78))};im.onerror=()=>{URL.revokeObjectURL(u);rej()};im.src=u})}
+function wireForm(p){
+  const g=id=>document.getElementById(p+'-'+id);
+  const seg=g('seg');
+  if(seg)seg.onclick=e=>{const b=e.target.closest('button');if(!b)return;forms[p].type=b.dataset.t;[...seg.children].forEach(x=>x.classList.toggle('on',x===b));g('basic').hidden=b.dataset.t!=='basic';g('cloze').hidden=b.dataset.t!=='cloze'};
+  const wrap=same=>{const ta=g('ctext'),a=ta.selectionStart,b=ta.selectionEnd;if(a===b){toast('Select some text first');return}const mx=maxCloze(ta.value),n=same?Math.max(1,mx):mx+1;ta.value=ta.value.slice(0,a)+'{{c'+n+'::'+ta.value.slice(a,b)+'}}'+ta.value.slice(b)};
+  g('c1').onclick=()=>wrap(false);g('c2').onclick=()=>wrap(true);
+  g('file').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{forms[p].img=await shrink(f);g('prev').src=forms[p].img;g('prev').hidden=false;g('imgx').hidden=false}catch(_){toast('Could not read that image')}};
+  g('imgx').onclick=()=>{forms[p].img=null;g('prev').hidden=true;g('prev').removeAttribute('src');g('imgx').hidden=true;g('file').value=''};
+}
+function readForm(p){
+  const g=id=>document.getElementById(p+'-'+id),type=forms[p].type,cl=type==='cloze';
+  return {deck:g('deck').value,type,front:(cl?g('ctext'):g('front')).value.trim(),back:(cl?g('extra'):g('back')).value.trim(),img:forms[p].img,tags:parseTags(g('tags').value),reverse:g('rev')?g('rev').checked:false};
+}
+function validate(f){
+  if(!f.deck)return 'Create a deck first';
+  if(f.type==='cloze')return clozeIdxs(f.front).length?'':'Add a cloze: select text, tap “+ new cloze”';
+  return ((f.front||f.img)&&f.back)?'':'Fill in the front and back';
+}
+
+/* ================= sheets ================= */
+function openSheet(html,bind){$('#sheet').innerHTML=html;$('#overlay').classList.add('open');$('#sheet').scrollTop=0;if(bind)bind()}
+function closeSheet(){$('#overlay').classList.remove('open');$('#sheet').innerHTML=''}
+$('#overlay').addEventListener('click',e=>{if(e.target.id==='overlay')closeSheet()});
+
+/* ================= navigation ================= */
+let page='decks';
+function go(p){
+  page=p;
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.p===p));
+  document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id==='page-'+p));
+  if(p==='decks')renderDecks();
+  if(p==='add')refreshDeckSelects();
+  if(p==='browse'){refreshDeckSelects();renderBrowse()}
+  if(p==='stats')renderStats();
+  if(p==='more'){refreshDeckSelects();fillSettings()}
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>go(b.dataset.p));
+function refreshDeckSelects(){
+  const opts=S.decks.map(d=>'<option value="'+d.id+'">'+esc(d.name)+'</option>').join('');
+  const a=$('#add-deck');if(a){const v=a.value||lastDeck;a.innerHTML=opts;if(S.decks.some(d=>d.id===v))a.value=v}
+  const b=$('#bdeck');const bv=b.value;b.innerHTML='<option value="">All decks</option>'+opts;if(bv&&S.decks.some(d=>d.id===bv))b.value=bv;
+  const i=$('#impDeck');const iv=i.value;i.innerHTML=opts;if(iv&&S.decks.some(d=>d.id===iv))i.value=iv;
+}
+
+/* ================= decks page ================= */
+function renderDecks(){
+  const totals={};for(const c of S.cards)totals[c.deck]=(totals[c.deck]||0)+1;
+  let due=0;
+  const list=$('#deckList');
+  if(!S.decks.length)list.innerHTML='<div class="empty-note">No decks yet. Create one below.</div>';
+  else list.innerHTML=S.decks.map(d=>{
+    const q=queueStats([d.id]),l=q.learnDue.length+q.learnAhead.length,n=totals[d.id]||0;
+    due+=q.nw.length+l+q.rev.length;
+    const z=v=>v?'':' class="z"';
+    return '<div class="deck" data-id="'+d.id+'" style="--dc:'+esc(d.color)+'"><button class="deck-main" data-act="study"><span class="dn">'+esc(d.name)+'</span><span class="dsub">'+n+' card'+(n===1?'':'s')+'</span></button>'+
+      '<div class="cnt"><span class="cn'+(q.nw.length?'':' z')+'">'+q.nw.length+'</span><span class="cl'+(l?'':' z')+'">'+l+'</span><span class="cr'+(q.rev.length?'':' z')+'">'+q.rev.length+'</span></div>'+
+      '<button class="icon-btn" data-act="opts" aria-label="Deck options">⋯</button></div>';
+  }).join('');
+  $('#dueSummary').textContent=due?due+' card'+(due===1?'':'s')+' to study today':(S.decks.length?'Nothing due — nice work':'');
+  $('#studyAll').hidden=S.decks.length<2||!due;
+}
+$('#deckList').addEventListener('click',e=>{
+  const row=e.target.closest('.deck'),b=e.target.closest('[data-act]');if(!row||!b)return;
+  const d=deckById(row.dataset.id);if(!d)return;
+  if(b.dataset.act==='study')startStudy([d.id],d.name);else openDeckOpts(d.id);
+});
+$('#studyAll').onclick=()=>startStudy(S.decks.map(d=>d.id),'All decks');
+$('#deckForm').onsubmit=e=>{
+  e.preventDefault();const name=$('#deckName').value.trim();if(!name)return;
+  S.decks.push({id:uid(),name,color:COLORS[S.decks.length%COLORS.length],newPerDay:20,revPerDay:200});
+  if(!lastDeck)lastDeck=S.decks[0].id;
+  $('#deckName').value='';save();renderDecks();refreshDeckSelects();
+};
+function openDeckOpts(id){
+  const d=deckById(id);
+  openSheet('<h2>'+esc(d.name)+'</h2>'+
+    '<label class="lab">Name</label><input id="doName" value="'+esc(d.name)+'" maxlength="40">'+
+    '<label class="lab">Color</label><input type="color" id="doColor" value="'+esc(d.color)+'">'+
+    '<div class="two"><div><label class="lab">New cards / day</label><input id="doNew" type="number" inputmode="numeric" min="0" max="9999" value="'+d.newPerDay+'"></div><div><label class="lab">Max reviews / day</label><input id="doRev" type="number" inputmode="numeric" min="0" max="9999" value="'+d.revPerDay+'"></div></div>'+
+    '<div class="row wrap" style="margin-top:16px"><button class="btn" id="doSave">Save</button><button class="btn ghost" id="doAdd">Add cards</button><button class="btn ghost" id="doBrowse">Browse</button><span class="spacer"></span><button class="btn danger" id="doDel">Delete</button></div>',
+  ()=>{
+    $('#doSave').onclick=()=>{d.name=$('#doName').value.trim()||d.name;d.color=$('#doColor').value;d.newPerDay=Math.max(0,parseInt($('#doNew').value)||0);d.revPerDay=Math.max(0,parseInt($('#doRev').value)||0);save();closeSheet();renderDecks();refreshDeckSelects()};
+    $('#doAdd').onclick=()=>{lastDeck=id;closeSheet();go('add');$('#add-deck').value=id};
+    $('#doBrowse').onclick=()=>{closeSheet();go('browse');$('#bdeck').value=id;renderBrowse()};
+    $('#doDel').onclick=()=>{const n=S.cards.filter(c=>c.deck===id).length;if(!confirm('Delete "'+d.name+'" and its '+n+' card'+(n===1?'':'s')+'? This cannot be undone.'))return;S.decks=S.decks.filter(x=>x.id!==id);S.cards=S.cards.filter(c=>c.deck!==id);delete S.counts[id];if(lastDeck===id)lastDeck=S.decks[0]?S.decks[0].id:'';save();closeSheet();renderDecks();refreshDeckSelects()};
+  });
+}
+
+/* ================= add page ================= */
+function initAdd(){
+  lastDeck=S.decks[0]?S.decks[0].id:'';
+  $('#addForm').innerHTML=formHTML('add',null);wireForm('add');
+  $('#add-deck').onchange=e=>lastDeck=e.target.value;
+}
+$('#addSave').onclick=()=>{
+  const f=readForm('add'),err=validate(f);if(err){toast(err);return}
+  const n=addNote(f);lastDeck=f.deck;save();
+  ['front','back','ctext','extra'].forEach(id=>{const el=$('#add-'+id);if(el)el.value=''});
+  $('#add-imgx').click();
+  toast('Added '+n+' card'+(n===1?'':'s')+' ✓');
+  const first=f.type==='cloze'?$('#add-ctext'):$('#add-front');if(first)first.focus();
+};
+
+/* ================= study ================= */
+let ST=null;
+function startStudy(ids,title){ST={ids,title,card:null,rev:false,undo:[]};$('#sTitle').textContent=title;$('#study').hidden=false;document.body.classList.add('noscroll');showNext()}
+function endStudy(){flush();ST=null;$('#study').hidden=true;document.body.classList.remove('noscroll');closeSheet();if(page==='decks')renderDecks();if(page==='stats')renderStats()}
+function showNext(){
+  const q=queueStats(ST.ids);
+  ST.card=q.learnDue[0]||q.rev[0]||q.nw[0]||q.learnAhead[0]||null;ST.rev=false;
+  $('#cN').textContent=q.nw.length;$('#cL').textContent=q.learnDue.length+q.learnAhead.length;$('#cR').textContent=q.rev.length;
+  paint();
+}
+function paint(){
+  const body=$('#sBody'),foot=$('#sFoot'),c=ST.card;
+  $('#sUndo').disabled=!ST.undo.length;$('#sUndo').style.opacity=ST.undo.length?1:.4;
+  $('#sMenu').hidden=!c;
+  if(!c){
+    const now=Date.now();let next=null;
+    for(const x of S.cards){if(x.susp||!ST.ids.includes(x.deck))continue;if((x.state===1||x.state===3)&&x.due>now&&(next===null||x.due<next))next=x.due}
+    body.innerHTML='<div class="done"><div class="big">🎉</div><h2>All done for now</h2><p class="muted">'+(next?'Next learning card in '+fmtWait(next-now)+'.':'Nothing else due today.')+'</p></div>';
+    foot.innerHTML='<button class="btn show" id="sFin">Finish</button>';$('#sFin').onclick=endStudy;return;
+  }
+  const r=renderCard(c);
+  if(!ST.rev){body.innerHTML='<div class="face">'+r.q+'</div>';foot.innerHTML='<button class="btn show" id="sShow">Show answer</button>';$('#sShow').onclick=reveal}
+  else{
+    body.innerHTML=r.replace?'<div class="face">'+r.a+'</div>':'<div class="face">'+r.q+'</div><hr><div class="face">'+r.a+'</div>';
+    const G=[[1,'Again','#d92d20'],[2,'Hard','#d97706'],[3,'Good','#15803d'],[4,'Easy','#2563eb']];
+    foot.innerHTML='<div class="grades">'+G.map(([g,l,col])=>'<button data-g="'+g+'" style="--gc:'+col+'"><b>'+l+'</b><span>'+previewLabel(c,g)+'</span></button>').join('')+'</div>';
+    foot.querySelectorAll('button').forEach(b=>b.onclick=()=>answer(+b.dataset.g));
+  }
+  body.scrollTop=0;
+}
+function reveal(){if(!ST||!ST.card||ST.rev)return;ST.rev=true;paint()}
+function answer(g){
+  const c=ST.card;if(!c||!ST.rev)return;
+  const now=Date.now(),k=S.counts[c.deck];
+  ST.undo.push({id:c.id,prev:Object.assign({},c),counts:k?Object.assign({},k):null,logLen:S.log.length});
+  if(ST.undo.length>50)ST.undo.shift();
+  if(c.state===0)bump(c.deck,'n',1);else if(c.state===2)bump(c.deck,'r',1);
+  S.log.push([now,g,c.state]);
+  Object.assign(c,sched(c,g,now));
+  save();showNext();
+}
+function undo(){
+  if(!ST||!ST.undo.length)return;
+  const u=ST.undo.pop(),c=S.cards.find(x=>x.id===u.id);if(!c)return;
+  Object.assign(c,u.prev);
+  if(u.counts)S.counts[c.deck]=u.counts;else delete S.counts[c.deck];
+  S.log.splice(u.logLen);
+  save();
+  const q=queueStats(ST.ids);$('#cN').textContent=q.nw.length;$('#cL').textContent=q.learnDue.length+q.learnAhead.length;$('#cR').textContent=q.rev.length;
+  ST.card=c;ST.rev=false;paint();
+}
+$('#sClose').onclick=endStudy;
+$('#sUndo').onclick=undo;
+$('#sMenu').onclick=()=>{
+  const c=ST.card;if(!c)return;
+  openSheet('<h2>Card</h2><div class="row wrap" style="margin-top:8px"><button class="btn ghost" id="mEdit">Edit</button><button class="btn ghost" id="mSusp">'+(c.susp?'Unsuspend':'Suspend')+'</button></div>',()=>{
+    $('#mEdit').onclick=()=>{closeSheet();openCardEditor(c)};
+    $('#mSusp').onclick=()=>{c.susp=true;save();closeSheet();toast('Card suspended');showNext()};
+  });
+};
+document.addEventListener('keydown',e=>{
+  if(!ST||$('#overlay').classList.contains('open'))return;
+  if(e.target.matches&&e.target.matches('input,textarea,select'))return;
+  if(e.key===' '||e.key==='Enter'){e.preventDefault();if(!ST.card)return;if(!ST.rev)reveal();else answer(3)}
+  else if(e.key>='1'&&e.key<='4'&&ST.rev)answer(+e.key);
+  else if(e.key==='z'||e.key==='Z')undo();
+  else if(e.key==='Escape')endStudy();
+});
+
+/* ================= card editor ================= */
+function openCardEditor(card,after){
+  const p='ed';
+  openSheet('<h2>Edit card</h2>'+formHTML(p,card)+
+    '<div class="row wrap" style="margin-top:16px"><button class="btn" id="edSave">Save</button><button class="btn ghost" id="edSusp">'+(card.susp?'Unsuspend':'Suspend')+'</button><button class="btn ghost" id="edReset">Reset</button><span class="spacer"></span><button class="btn danger" id="edDel">Delete</button></div>'+
+    '<div class="small" style="margin-top:10px">'+(card.state===0?'New card':'Interval '+(card.state===2?fmtDays(card.ivl):'—')+' · Ease '+Math.round(card.ease*100)+'% · Reviews '+card.reps+' · Lapses '+card.lapses)+'</div>',
+  ()=>{
+    wireForm(p);
+    const finish=()=>{closeSheet();if(after)after();if(ST){const f=S.cards.find(x=>x.id===(ST.card&&ST.card.id));if(!f)showNext();else{ST.card=f;paint()}}};
+    $('#edSave').onclick=()=>{const f=readForm(p),err=validate(f);if(err){toast(err);return}updateNote(card,f);save();finish()};
+    $('#edSusp').onclick=()=>{card.susp=!card.susp;save();closeSheet();if(after)after();if(ST&&card.susp)showNext()};
+    $('#edReset').onclick=()=>{if(!confirm('Reset this card to New?'))return;Object.assign(card,{state:0,step:0,due:0,ivl:0,ease:2.5,reps:0,lapses:0,order:S.nextOrder++});save();finish()};
+    $('#edDel').onclick=()=>{const n=S.cards.filter(x=>x.noteId===card.noteId).length;if(!confirm('Delete this card'+(n>1?' and its '+(n-1)+' sibling card'+(n>2?'s':''):'')+'?'))return;deleteNote(card);save();closeSheet();if(after)after();if(ST)showNext()};
+  });
+}
+
+/* ================= browse ================= */
+let bLimit=100;
+function stateChip(c){
+  if(c.susp)return ['Suspended','s'];
+  if(c.state===0)return ['New','n'];
+  if(c.state===1||c.state===3)return ['Learning','l'];
+  const d=c.due-today();return [d<=0?'Due':'in '+fmtDays(d),'r'];
+}
+function renderBrowse(){
+  const q=$('#bq').value.trim().toLowerCase(),dk=$('#bdeck').value,st=$('#bstate').value;
+  const toks=q.split(/\s+/).filter(Boolean),t=today(),now=Date.now();
+  const list=S.cards.filter(c=>{
+    if(dk&&c.deck!==dk)return false;
+    if(st==='new'&&!(c.state===0&&!c.susp))return false;
+    if(st==='learn'&&!((c.state===1||c.state===3)&&!c.susp))return false;
+    if(st==='due'&&!(!c.susp&&((c.state===2&&c.due<=t)||((c.state===1||c.state===3)&&c.due<=now))))return false;
+    if(st==='susp'&&!c.susp)return false;
+    const hay=(c.front+' '+c.back).toLowerCase();
+    for(const k of toks){
+      if(k[0]==='#'){if(!c.tags.some(g=>g.startsWith(k.slice(1))))return false}
+      else if(!hay.includes(k)&&!c.tags.some(g=>g.includes(k)))return false;
+    }
+    return true;
+  }).sort((a,b)=>b.created-a.created||b.order-a.order);
+  $('#bcount').textContent=list.length+' card'+(list.length===1?'':'s');
+  $('#blist').innerHTML=list.slice(0,bLimit).map(c=>{
+    const [l,k]=stateChip(c),d=deckById(c.deck);
+    return '<button class="crow" data-id="'+c.id+'"><span class="ctx">'+esc(plain(c))+'</span><span class="cmeta"><span>'+esc(d?d.name:'')+'</span><span class="chip '+k+'">'+l+'</span>'+(c.type==='cloze'?'<span>c'+c.idx+'</span>':'')+(c.rev?'<span>↔ reverse</span>':'')+'</span></button>';
+  }).join('');
+  $('#bmore').hidden=list.length<=bLimit;
+}
+['input','change'].forEach(ev=>{$('#bq').addEventListener(ev,()=>{bLimit=100;renderBrowse()});$('#bdeck').addEventListener(ev,()=>{bLimit=100;renderBrowse()});$('#bstate').addEventListener(ev,()=>{bLimit=100;renderBrowse()})});
+$('#bmore').onclick=()=>{bLimit+=100;renderBrowse()};
+$('#blist').addEventListener('click',e=>{const b=e.target.closest('.crow');if(!b)return;const c=S.cards.find(x=>x.id===b.dataset.id);if(c)openCardEditor(c,renderBrowse)});
+
+/* ================= stats ================= */
+function chart(vals,labels,unit,id){
+  const mx=Math.max(1,...vals),n=vals.length;
+  return '<div class="chart" id="'+id+'"><div class="readout">Tap a bar for the value · max '+mx+'</div>'+
+    '<div class="bars" role="img" aria-label="'+esc(unit)+' chart, '+n+' bars, maximum '+mx+'">'+
+    vals.map((v,i)=>'<div class="b" data-i="'+i+'" data-t="'+esc(labels[i]+': '+v+' '+unit)+'"><i style="height:'+(v/mx*100)+'%"></i></div>').join('')+'</div>'+
+    '<div class="xl"><span>'+esc(labels[0])+'</span><span>'+esc(labels[n-1])+'</span></div>'+
+    '<details><summary>Show as table</summary><table>'+vals.map((v,i)=>'<tr><td>'+esc(labels[i])+'</td><td>'+v+'</td></tr>').join('')+'</table></details></div>';
+}
+function dayLabel(offset){const d=new Date(Date.now()-ROLL*3600e3+offset*864e5);return d.toLocaleDateString(undefined,{month:'short',day:'numeric'})}
+function renderStats(){
+  const t=today();
+  let nNew=0,nLearn=0,nYoung=0,nMature=0,nSusp=0;const fc=Array(14).fill(0);
+  for(const c of S.cards){
+    if(c.susp){nSusp++;continue}
+    if(c.state===0)nNew++;
+    else if(c.state===1||c.state===3){nLearn++;fc[0]++}
+    else{if(c.ivl>=21)nMature++;else nYoung++;const k=Math.max(0,c.due-t);if(k<14)fc[k]++}
+  }
+  const hist=Array(30).fill(0),days=new Set();let rTot=0,rOk=0;
+  for(const [ts,g,st] of S.log){
+    const d=dayIdx(ts);days.add(d);const k=t-d;
+    if(k>=0&&k<30){hist[29-k]++;if(st===2){rTot++;if(g>1)rOk++}}
+  }
+  let streak=0,d=t;if(!days.has(d))d--;while(days.has(d)){streak++;d--}
+  const fl=[],hl=[];for(let i=0;i<14;i++)fl.push(i===0?'Today':dayLabel(i));for(let i=29;i>=0;i--)hl.push(i===0?'Today':dayLabel(-i));
+  $('#statsBody').innerHTML=
+    '<div class="stat-grid"><div class="card"><div class="big-n">'+hist[29]+'</div><div class="small">reviewed today</div></div><div class="card"><div class="big-n">'+streak+'</div><div class="small">day streak</div></div><div class="card"><div class="big-n">'+(rTot?Math.round(rOk/rTot*100)+'%':'—')+'</div><div class="small">retention (30d)</div></div></div>'+
+    '<div class="card"><h2>Due in the next 14 days</h2>'+chart(fl.map((_,i)=>fc[i]),fl,'cards due','chF')+'</div>'+
+    '<div class="card"><h2>Reviews per day (30 days)</h2>'+chart(hist,hl,'reviews','chH')+'</div>'+
+    '<div class="card statelist"><h2>Cards</h2><div><span>New</span><b>'+nNew+'</b></div><div><span>Learning</span><b>'+nLearn+'</b></div><div><span>Young (&lt; 21 days)</span><b>'+nYoung+'</b></div><div><span>Mature (21+ days)</span><b>'+nMature+'</b></div><div><span>Suspended</span><b>'+nSusp+'</b></div><div><span>Total</span><b>'+S.cards.length+'</b></div></div>'+
+    '<div class="small">Retention = share of review-stage answers that weren’t “Again”.</div>';
+}
+$('#statsBody').addEventListener('click',e=>{
+  const b=e.target.closest('.b');if(!b)return;
+  const ch=b.closest('.chart');ch.querySelectorAll('.b').forEach(x=>x.classList.toggle('sel',x===b));
+  ch.querySelector('.readout').textContent=b.dataset.t;
+});
+
+/* ================= settings, import, backup ================= */
+function fillSettings(){$('#setLearn').value=S.settings.learnSteps.join(' ');$('#setRelearn').value=S.settings.relearnSteps.join(' ');$('#setTheme').value=S.settings.theme||'auto'}
+const steps=s=>{const a=String(s).split(/[\s,]+/).map(Number).filter(x=>x>0&&isFinite(x)&&x<=10080);return a.length?a:null};
+function applyTheme(){const t=S.settings.theme;if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;else delete document.documentElement.dataset.theme}
+$('#setSave').onclick=()=>{
+  const l=steps($('#setLearn').value),r=steps($('#setRelearn').value);
+  if(!l||!r){toast('Enter at least one step, e.g. 1 10');return}
+  S.settings.learnSteps=l;S.settings.relearnSteps=r;S.settings.theme=$('#setTheme').value;applyTheme();save();toast('Settings saved');
+};
+$('#impGo').onclick=()=>{
+  const dk=$('#impDeck').value;if(!dk){toast('Create a deck first');return}
+  let n=0,bad=0;
+  for(const raw of $('#impText').value.split(/\r?\n/)){
+    const ln=raw.trim();if(!ln)continue;
+    let parts;
+    if(ln.includes('\t'))parts=ln.split('\t');
+    else if(/\{\{c\d+::/.test(ln))parts=[ln];
+    else if(ln.includes(';')){const i=ln.indexOf(';');parts=[ln.slice(0,i),ln.slice(i+1)]}
+    else{bad++;continue}
+    parts=parts.map(s=>s.trim());
+    if(/\{\{c\d+::/.test(parts[0]))n+=addNote({deck:dk,type:'cloze',front:parts[0],back:parts[1]||'',img:null,tags:parseTags(parts[2]||'')})?1:0;
+    else if(parts[0]&&parts[1]){addNote({deck:dk,type:'basic',front:parts[0],back:parts[1],img:null,tags:parseTags(parts[2]||''),reverse:false});n++}
+    else bad++;
+  }
+  save();if(n)$('#impText').value='';
+  toast('Imported '+n+' note'+(n===1?'':'s')+(bad?' · skipped '+bad:''));
+};
+const ymd=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+$('#expJson').onclick=()=>download('cards-backup-'+ymd()+'.json',JSON.stringify(S),'application/json');
+$('#expTsv').onclick=()=>{
+  const rows=[];
+  for(const c of S.cards)if(c.type==='basic'&&!c.rev)rows.push([c.front,c.back,c.tags.join(' ')].map(s=>s.replace(/[\t\r\n]+/g,' ')).join('\t'));
+  if(!rows.length){toast('No basic cards to export');return}
+  download('cards-'+ymd()+'.txt',rows.join('\n'),'text/plain');
+};
+$('#impJson').onclick=()=>$('#file').click();
+$('#file').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{
+    const s=JSON.parse(r.result);if(!Array.isArray(s.decks)||!Array.isArray(s.cards))throw 0;
+    if(!confirm('Replace ALL current data with this backup?'))return;
+    S=normalize(s);save();initAdd();applyTheme();go('decks');toast('Backup restored');
+  }catch(_){toast('That file is not a valid backup')}};
+  r.readAsText(f);e.target.value='';
+};
+$('#wipe').onclick=()=>{if(!confirm('Delete ALL decks, cards and history?'))return;if(!confirm('Really delete everything? Export a backup first if unsure.'))return;S=normalize({decks:[],cards:[]});save();initAdd();go('decks')};
+
+/* ================= init ================= */
+function normalize(s){
+  s.v=1;s.log=Array.isArray(s.log)?s.log:[];s.counts=s.counts||{};s.nextOrder=s.nextOrder||(s.cards.reduce((m,c)=>Math.max(m,c.order||0),0)+1);
+  s.settings=Object.assign({learnSteps:[1,10],relearnSteps:[10],theme:'auto'},s.settings||{});
+  s.cards.forEach(c=>{c.tags=c.tags||[];c.ease=c.ease||2.5;c.reps=c.reps||0;c.lapses=c.lapses||0;c.noteId=c.noteId||c.id});
+  return s;
+}
+function freshState(){
+  S=normalize({decks:[{id:uid(),name:'Sample deck',color:COLORS[0],newPerDay:20,revPerDay:200}],cards:[]});
+  const d=S.decks[0].id;
+  addNote({deck:d,type:'basic',front:"What organelle produces most of the cell's ATP?",back:'Mitochondria',img:null,tags:['biology'],reverse:true});
+  addNote({deck:d,type:'cloze',front:"The {{c1::SA node}} is the heart's natural pacemaker, firing about {{c2::60–100}} times per minute at rest.",back:'',img:null,tags:['physiology']});
+}
+(async function init(){
+  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(_){}
+  const saved=await kvGet('state');
+  if(saved&&Array.isArray(saved.decks)&&Array.isArray(saved.cards))S=normalize(saved);else{freshState();save()}
+  applyTheme();initAdd();renderDecks();refreshDeckSelects();
+  if('serviceWorker' in navigator){const reg=()=>navigator.serviceWorker.register('sw.js').catch(()=>{});if(document.readyState==='complete')reg();else window.addEventListener('load',reg)}
+})();
+</script>
+</body>
+</html>
